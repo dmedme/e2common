@@ -1,0 +1,63 @@
+#
+# Me2c.aix - Common product components for AIX.
+#
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems Limited 1993
+#
+# AIX
+#
+CFLAGS=-gx -DPOSIX -DAIX -I. -DAT
+NATMCFLAGS=-gx -DPOSIX -I. -DAT
+CC= cc
+VCC= cc
+XPGCC= cc
+LIBS=-lm -lc -lbsd
+RANLIB = ranlib
+AR = ar
+# Pick up Ultrix funnies (particularly sh5)
+#CFLAGS=-DULTRIX -g -I.
+#CFLAGS=-DULTRIX -DDEBUG -g
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+all: hisps natmenu
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+# On release 4 of AIX, must use -lcurses rather than -lcur.
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(NATMCFLAGS) -o natmenu natmenu.c comlib.a -lcurses -lc -lbsd
+oneproc: oneproc.c
+	$(CC)  $(CFLAGS) -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) -gx -DPOSIX  -I. -DAT -c hisps.c
+#
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o malloc.o e2compat.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(NATMCFLAGS) -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c

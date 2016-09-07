@@ -1,0 +1,100 @@
+#
+# Me2c.vcc - Common product components for Microsoft NT-4 and later with VCC
+#
+# Copyright (c) E2 Systems 1994. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# Executables are:
+#  - e2sort (Sort Utility)
+#  - e2join (Join Utility)
+#
+# Microsoft NT.4 and Later
+#
+#
+# /Wp64 is 64 bit long ints, methinks
+#
+#CFLAGS=/TC /D POSIX /Ox /I . /D E2  /D AT /D NT4 /D MINGW32 /D PATH_AT /D WIN32 /D _CONSOLE /W4 /EHsc /G6 /D VCC2003
+CFLAGS=/TC /D POSIX /Od /I . /D E2  /D AT /D NT4 /D MINGW32 /D PATH_AT /D WIN32 /D _CONSOLE /W4 /EHsc /Z7 /G6 /D VCC2003
+LDFLAGS=/SUBSYSTEM:CONSOLE /NODEFAULTLIB
+CC = c:/"Program Files"/"Microsoft Visual C++ Toolkit 2003"/bin/cl
+RC = c:/lcc/bin/lrc
+AR = c:/lcc/bin/lcclib
+LD = c:/"Program Files"/"Microsoft Visual C++ Toolkit 2003"/bin/link
+YACC=byacc
+LEX=flex -l
+LIBS=comlib.lib  "c:\\Program Files\\Microsoft Visual C++ Toolkit 2003\\lib\\oldnames.lib" "c:\\Program Files\\Microsoft SDK\\lib\\WS2_32.lib" "c:\\Program Files\\Microsoft SDK\\lib\\User32.lib" "c:\\Program Files\\Microsoft SDK\\lib\\Kernel32.lib" "c:\\Program Files\\Microsoft Visual C++ Toolkit 2003\\lib\\libcmt.lib"
+.SUFFIXES: .exe .obj .c .lib .l .y
+.c.obj:
+	$(CC) $(CFLAGS) /c /Fo$@ $<
+.obj.exe:
+	$(LD) $(LDFLAGS) /OUT:$@ $< $(LIBS)
+#
+all: e2join.exe e2sort.exe 
+	@echo 'E2 Common make finished'
+tosecs.exe: tosecs.obj comlib.lib
+	$(LD) $(LDFLAGS) /OUT:tosecs.exe tosecs.obj $(LIBS)
+todate.exe: todate.obj comlib.lib
+	$(LD) $(LDFLAGS) /OUT:todate.exe todate.obj $(LIBS)
+
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+#
+# The Library
+# ===========
+# The SCO C2 UNIX routines are not compatible with our malloc() (they corrupt
+# memory, and our routine is very strict). 
+# Therefore we use the standard routines in this case.
+#comlib.lib: datlib.obj hashlib.obj natregex.obj e2compat.obj e2conv.obj e2recs.obj getopt.obj timestamp.obj e2sort.obj
+comlib.lib: datlib.obj hashlib.obj natregex.obj e2compat.obj e2conv.obj e2recs.obj getopt.obj timestamp.obj e2file.obj natsock.obj
+	$(AR) $@ $?
+
+tosecs.obj: tosecs.c
+	$(CC) $(CFLAGS) /c /Fo$@ tosecs.c
+todate.obj: todate.c
+	$(CC) $(CFLAGS) /c /Fo$@ todate.c
+
+timestamp.obj: timestamp.c
+	$(CC) $(CFLAGS) /c /Fo$@ timestamp.c
+
+datlib.obj: datlib.c
+	$(CC) $(CFLAGS) /c /Fo$@ datlib.c
+
+natsock.obj: natsock.c
+	$(CC) $(CFLAGS) /c /Fo$@ natsock.c
+
+hashlib.obj: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) /c /Fo$@ hashlib.c
+
+natregex.obj: natregex.c natregex.h
+	$(CC) $(CFLAGS) /c /Fo$@ natregex.c
+
+malloc.obj: malloc.c
+	$(CC) $(CFLAGS) /c /Fo$@ malloc.c
+
+e2compat.obj: e2compat.c
+	$(CC) $(CFLAGS) /c /Fo$@ e2compat.c
+
+e2conv.obj: e2conv.c
+	$(CC) $(CFLAGS) /c /Fo$@ e2conv.c
+
+e2recs.obj: e2recs.c
+	$(CC) $(CFLAGS) /c /Fo$@ e2recs.c
+
+e2sort.obj: e2sort.c
+	$(CC) $(CFLAGS) /c /Fo$@ e2sort.c
+
+e2file.obj: e2file.c
+	$(CC) $(CFLAGS) /c /Fo$@ e2file.c
+
+getopt.obj: getopt.c
+	$(CC) $(CFLAGS) /c /Fo$@ getopt.c
+
+e2sort_main.obj: e2sort.c
+	$(CC) $(CFLAGS) /c /Fo$@ /D e2_sort=main e2sort.c
+e2join_main.obj: e2sort.c
+	$(CC) $(CFLAGS) /c /Fo$@ /D e2_join=main e2sort.c
+e2sort.exe: e2sort_main.obj comlib.lib
+	$(LD) $(LDFLAGS) /OUT:$@ e2sort_main.obj $(LIBS)
+e2join.exe: e2join_main.obj comlib.lib
+	$(LD) $(LDFLAGS) /OUT:$@ e2join_main.obj $(LIBS)

@@ -1,0 +1,82 @@
+#
+# Me2c.osf - Common product components for OSF.
+#
+# Copyright (c) E3 Systems 1993. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# OSF
+#
+CFLAGS=-g -O0 -std1 -assume noaligned -arch host -DPOSIX -DOSF -I. -DAT
+CC= cc
+VCC= cc
+XPGCC= cc
+LIBS=-lm -lc -lbsd
+RANLIB = ranlib
+AR = ar
+# Pick up Ultrix funnies (particularly sh5)
+#CFLAGS=-DULTRIX -g -I.
+#CFLAGS=-DULTRIX -DDEBUG -g
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+all: hisps natmenu e2sort e2join todate tosecs
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(CFLAGS) -DATT -o natmenu natmenu.c comlib.a -lcurses -ltermlib -lc -lbsd
+oneproc: oneproc.c
+	$(CC) -DSCO  -DV4 -DOSF -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS)  -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) -c hisps.c
+e2sort: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sort -De2_sort=main e2sort.c comlib.a $(LIBS)
+e2join: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2join -De2_join=main e2sort.c comlib.a $(LIBS)
+#
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o e2compat.o e2file.o e2conv.o e2recs.o timestamp.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) -g -DPOSIX -DATT -DOSF -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+
+e2file.o: e2file.c
+	$(CC) $(CFLAGS) -c e2file.c
+
+e2conv.o: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.o: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c
+
+timestamp.o: timestamp.c matchlib.h circlib.h
+	$(CC) $(CFLAGS) -DPATH_AT -c timestamp.c
+
+tosecs: tosecs.c comlib.a
+	$(CC) $(CFLAGS) -o tosecs tosecs.c comlib.a $(LIBS)
+todate: todate.c comlib.a
+	$(CC) $(CFLAGS) -o todate todate.c comlib.a $(LIBS)

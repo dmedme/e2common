@@ -1,0 +1,72 @@
+#
+# Me2c.solar - Common product components for SUN SOLARIS 2.3
+#
+# @(#) $Name$ $Id$
+# Copyright (c) E3 Systems 1994. All Rights Reserved.
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+# System V.4
+#
+LIBS=-lsocket -lnsl -lcurses -ltermlib -lm -lc /usr/ucblib/libucb.a
+CFLAGS=-DSCO -DPOSIX  -DV4 -DICL -g -I. -DAT -DSOLAR
+RANLIB = ar ts
+VCC = cc
+CC = cc
+XPGCC = cc
+#
+all: hisps natmenu
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(CFLAGS) -o natmenu natmenu.c comlib.a -lcurses -ltermlib $(LIBS)
+oneproc: oneproc.c
+	$(CC) $(CFLAGS) -o oneproc oneproc.c -lm -lelf
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) $(CFLAGS) -c hisps.c
+#
+# The Library
+# ===========
+# The SCO C2 UNIX routines are not compatible with our malloc() (they corrupt
+# memory, and our routine is very strict). 
+# Therefore we use the standard routines in this case.
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o e2compat.o e2file.o e2conv.o e2recs.o natsock.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+e2file.o: e2file.c e2file.h
+	$(CC) $(CFLAGS) -c e2file.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(CFLAGS) -DATT -c natmlib.c
+
+# malloc.o: malloc.c
+# 	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+
+e2conv.o: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.o: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c

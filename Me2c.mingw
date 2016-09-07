@@ -1,0 +1,106 @@
+#
+# Me2c.mingw - Common product components for MinGW (Minimal GNU CC on Windows)
+#
+# Copyright (c) E3 Systems 1993. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# MINGW
+#
+#CFLAGS=-DPOSIX -O4 -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DPATH_AT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -s
+CFLAGS=-DPOSIX -g2 -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DPATH_AT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DNESTED_CONCURRENT -DTHREADED_MALLOC -DNESTED_CONCURRENT
+
+NATMCFLAGS=-O4 -DPOSIX -I. -DNT4 -DMINGW32 -DAT
+CC= c:/mingw/bin/gcc
+VCC= c:/mingw/bin/gcc
+XPGCC= c:/mingw/bin/gcc
+#
+# Do not use libmingw32 because we have no idea what is in it
+#
+LIBS=-Lc:/mingw/lib -lkernel32 -lmsvcrt
+RANLIB = c:/mingw/bin/ranlib
+AR = c:/mingw/bin/ar
+LD= c:/mingw/bin/gcc
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - hisps (Accounting History Formatter)
+#
+all: e2sort e2join tosecs todate ascbin unquote fhunt mempat
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(NATMCFLAGS) -o natmenu natmenu.c comlib.a -lncurses -lc
+oneproc: oneproc.c
+	$(CC)  $(CFLAGS) -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+solhisps: hisps.c comlib.a
+	$(CC) $(CFLAGS) -DSPARC_SOL_ON_LINUX -o solhisps hisps.c comlib.a $(LIBS)
+e2sort: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sort -De2_sort=main e2sort.c comlib.a $(LIBS)
+e2sort_home: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sort_home -De2_sort=main e2sort.c malloc.o comlib.a $(LIBS)
+e2join_home: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2join_home -De2_join=main e2sort.c malloc.o comlib.a $(LIBS)
+e2sortrec: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sortrec -DUSE_RECURSE -De2_sort=main e2sort.c comlib.a $(LIBS)
+e2join: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2join -De2_join=main e2sort.c comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) -g -DPOSIX -DMINGW32 -DNT4 -I. -DAT -c hisps.c
+#
+comlib.a: datlib.o hashlib.o natregex.o e2compat.o e2file.o e2conv.o e2recs.o timestamp.o e2sort.o getopt.o bmmatch.o natsock.o malloc.o submalloc.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(NATMCFLAGS) -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -DQUICK_REPLACE -DLAZY_FREE -DFRAG_TRACKING -c malloc.c
+submalloc.o: submalloc.c
+	$(CC) $(CFLAGS) -DQUICK_REPLACE -DLAZY_FREE -DFRAG_TRACKING -c submalloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+
+e2file.o: e2file.c
+	$(CC) $(CFLAGS) -c e2file.c
+
+e2conv.o: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.o: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c
+
+e2sort.o: e2sort.c
+	$(CC) $(CFLAGS) -c e2sort.c
+
+timestamp.o: timestamp.c matchlib.h circlib.h
+	$(CC) $(CFLAGS) -c timestamp.c
+
+unquote: unquote.c comlib.a
+	$(CC) $(CFLAGS) -o unquote unquote.c comlib.a $(LIBS)
+ascbin: ascbin.c comlib.a
+	$(CC) $(CFLAGS) -o ascbin ascbin.c comlib.a $(LIBS)
+tosecs: tosecs.c comlib.a
+	$(CC) $(CFLAGS) -o tosecs tosecs.c comlib.a $(LIBS)
+todate: todate.c comlib.a
+	$(CC) $(CFLAGS) -o todate todate.c comlib.a $(LIBS)
+fhunt: fhunt.c comlib.a
+	$(CC) $(CFLAGS) -s -o fhunt fhunt.c comlib.a $(LIBS)
+mempat: mempat.c
+	$(CC) $(CFLAGS) -s -o mempat mempat.c comlib.a $(LIBS)

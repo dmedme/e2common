@@ -1,0 +1,62 @@
+#
+# Me2c.ptx - Common product components for Dynix ptx (Sequent)
+#
+# Copyright (c) E2 Systems 1993. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+# Sequent
+#
+LIBS=-lsocket -linet -lnsl -lcurses -ltermlib -lm -lseq
+CFLAGS= -DPOSIX -g -I. -DAT -DATT -DPTX
+RANLIB = ar -ts
+VCC = cc
+CC = cc
+XPGCC = cc
+#
+all: hisps natmenu
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(CFLAGS) -DSCO -o natmenu natmenu.c comlib.a -lcurses -ltermlib $(LIBS)
+oneproc: oneproc.c
+	$(CC) -g  -DPTX -o oneproc oneproc.c $(LIBS)
+# System V.4
+#	$(CC) $(CFLAGS) -o oneproc oneproc.c -lm -lelf
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) $(CFLAGS) -c hisps.c
+#
+# The Library
+# ===========
+# The SCO C2 UNIX routines are not compatible with our malloc() (they corrupt
+# memory, and our routine is very strict). 
+# Therefore we use the standard routines in this case.
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o e2compat.o malloc.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(CFLAGS) -DSCO -c natmlib.c
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+

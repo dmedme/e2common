@@ -1,0 +1,98 @@
+#
+# Me2c.lcc - Common product components for Microsoft NT-4
+#
+# Copyright (c) E2 Systems 1994. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+# Microsoft NT.4
+#
+INCS=-I.
+#CFLAGS=-DPOSIX -g2 -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT
+CFLAGS=-DPOSIX -O -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT
+LDFLAGS=-subsystem console
+#LDFLAGS=-subsystem console -s
+CC = c:/lcc/bin/lcc
+RC = c:/lcc/bin/lrc
+AR = c:/lcc/bin/lcclib
+LD = c:/lcc/bin/lcclnk
+YACC=byacc
+LEX=flex -l
+.SUFFIXES: .obj .c .lib .l .y
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+#
+all: tosecs.exe todate.exe e2sort.exe e2join.exe
+	@echo 'E2 Common make finished'
+tosecs.exe: tosecs.obj comlib.lib
+	$(LD) $(LDFLAGS) -o tosecs.exe tosecs.obj comlib.lib
+todate.exe: todate.obj comlib.lib
+	$(LD) $(LDFLAGS) -o todate.exe todate.obj comlib.lib
+
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+#
+# The Library
+# ===========
+# The SCO C2 UNIX routines are not compatible with our malloc() (they corrupt
+# memory, and our routine is very strict). 
+# Therefore we use the standard routines in this case.
+#comlib.lib: datlib.obj hashlib.obj natregex.obj e2compat.obj e2conv.obj e2recs.obj getopt.obj timestamp.obj e2sort.obj
+comlib.lib: datlib.obj hashlib.obj natregex.obj e2compat.obj e2conv.obj e2recs.obj getopt.obj timestamp.obj e2file.obj
+	$(AR) $@ $?
+
+tosecs.obj: tosecs.c
+	$(CC) $(CFLAGS) -c tosecs.c
+todate.obj: todate.c
+	$(CC) $(CFLAGS) -c todate.c
+
+timestamp.obj: timestamp.c
+	$(CC) $(CFLAGS) -c timestamp.c
+
+datlib.obj: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.obj: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.obj: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+malloc.obj: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.obj: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+
+e2conv.obj: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.obj: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c
+
+e2sort.obj: e2sort.c
+	$(CC) $(CFLAGS) -c e2sort.c
+
+e2file.obj: e2file.c
+	$(CC) $(CFLAGS) -c e2file.c
+
+getopt.obj: getopt.c
+	$(CC) $(CFLAGS) -c getopt.c
+
+e2sort_main.obj: e2sort.c
+	$(CC) $(CFLAGS) -c -De2_sort=main e2sort.c
+	mv e2sort.obj e2sort_main.obj
+e2join_main.obj: e2sort.c
+	$(CC) $(CFLAGS) -c -De2_join=main e2sort.c
+	mv e2sort.obj e2join_main.obj
+e2sort_lcc.exe: e2sort_main.obj
+	$(LD) $(LDFLAGS) -o e2sort_lcc.exe e2sort_main.obj getopt.obj
+e2sort.exe: e2sort_main.obj
+	$(LD) $(LDFLAGS) -o e2sort.exe e2sort_main.obj malloc.obj getopt.obj
+e2join.exe: e2join_main.obj
+	$(LD) $(LDFLAGS) -o e2join.exe e2join_main.obj malloc.obj getopt.obj

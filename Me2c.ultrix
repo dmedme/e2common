@@ -1,0 +1,68 @@
+#
+# Me2c.ultrix - Common product components for Ultrix.
+#
+# Copyright (c) E3 Systems 1993. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+# Ultrix
+#
+CC= cc
+LD=ld
+XPGCC=cc
+VCC= cc -Y
+RANLIB = ranlib
+LIBS = -lm
+# Pick up Ultrix funnies (particularly sh5)
+CFLAGS=-Y -DULTRIX -g -I. -DAT
+#
+all: hisps natmenu
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) ${CFLAGS} -o natmenu natmenu.c comlib.a -lcursesX -ltermlib -lm
+oneproc: oneproc.c
+	$(CC)  $(CFLAGS) -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) $(CFLAGS) -c hisps.c
+#
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o malloc.o e2compat.o e2file.o e2conv.o e2recs.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(CFLAGS) -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+e2conv.o: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.o: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c
+e2file.o: e2file.c e2file.h
+	$(CC) $(CFLAGS) -c e2file.c
+

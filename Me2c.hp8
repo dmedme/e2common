@@ -1,0 +1,63 @@
+#
+# Me2c.hp8 - Common product components for HP-UX 9 on 800 series
+#
+# Copyright (c) E3 Systems 1993. All Rights Reserved.
+#
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems Limited 1993
+#
+# The difference between this and the version that ran on the 700 was
+# that on the 700 we had the ANSI C compiler, and on the 800 we had the
+# K & R variant. Additionally, STREAMS is a layered product, so the
+# include directory path is peculiar.
+#
+CFLAGS=-g -DPOSIX -DHP7 -I. -DAT
+CC= cc
+XPGCC= cc
+LIBS=-lm -lc -lV3 -lBSD
+RANLIB=ranlib
+#
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - oneproc (Process Tree Viewer)
+#  - hisps (Accounting History Formatter)
+#
+all: hisps natmenu
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(CFLAGS) -o natmenu natmenu.c comlib.a -lcurses -ltermlib $(LIBS)
+oneproc: oneproc.c
+	$(CC)  $(CFLAGS) -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) $(CFLAGS) -c hisps.c
+#
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o e2compat.o e2conv.o e2recs.o e2file.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(CFLAGS) -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+

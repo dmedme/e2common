@@ -1,0 +1,85 @@
+#
+# Me2c.linux - Common product components for LINUX
+#
+# Copyright (c) E3 Systems 1993. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# LINUX
+#
+CFLAGS=-m32 -O4 -DPOSIX -DAIX -DAIX4 -I. -DAT -DLINUX -DPATH_AT -DUNIX -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+#CFLAGS=-g -DPOSIX -DAIX -DAIX4 -I. -DAT -DLINUX -DPATH_AT
+NATMCFLAGS=-O4 -DPOSIX -I. -DLINUX -DAT
+CC= cc
+VCC= cc
+XPGCC= cc
+LIBS=-lm -lc
+RANLIB = ranlib
+AR = ar
+#
+# Executables are:
+#  - natmenu (Menu Driver)
+#  - hisps (Accounting History Formatter)
+#
+all: hisps natmenu e2sort e2join tosecs todate
+	@echo 'E2 Common make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+natmenu: natmenu.c natmenu.h ansi.h comlib.a
+	$(CC) $(NATMCFLAGS) -o natmenu natmenu.c comlib.a -lncurses -lc
+oneproc: oneproc.c
+	$(CC)  $(CFLAGS) -o oneproc oneproc.c $(LIBS)
+comp2: comp2.c
+	$(CC)  $(CFLAGS) -o comp2 comp2.c $(LIBS)
+hisps: hisps.o comlib.a
+	$(XPGCC) $(LFLAGS) $(CFLAGS) -o hisps hisps.o comlib.a $(LIBS)
+e2sort: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sort -De2_sort=main e2sort.c comlib.a $(LIBS)
+e2sortrec: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2sortrec -DUSE_RECURSE -De2_sort=main e2sort.c comlib.a $(LIBS)
+e2join: e2sort.c comlib.a
+	$(CC) $(LFLAGS) $(CFLAGS) -o e2join -De2_join=main e2sort.c comlib.a $(LIBS)
+hisps.o: hisps.c
+	$(XPGCC) -g -DPOSIX -DLINUX  -I. -DAT -c hisps.c
+#
+comlib.a: datlib.o hashlib.o natmlib.o natregex.o e2compat.o e2file.o e2conv.o e2recs.o timestamp.o e2sort.o getopt.o
+	ar rv $@ $?
+	$(RANLIB) $@
+
+datlib.o: datlib.c
+	$(CC) $(CFLAGS) -c datlib.c
+
+hashlib.o: hashlib.c hashlib.h
+	$(CC) $(CFLAGS) -c hashlib.c
+
+natregex.o: natregex.c natregex.h
+	$(CC) $(CFLAGS) -c natregex.c
+
+natmlib.o: natmlib.c natmenu.h natregex.h
+	$(CC) $(NATMCFLAGS) -c natmlib.c
+
+malloc.o: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+
+e2compat.o: e2compat.c
+	$(CC) $(CFLAGS) -c e2compat.c
+
+e2file.o: e2file.c
+	$(CC) $(CFLAGS) -c e2file.c
+
+e2conv.o: e2conv.c
+	$(CC) $(CFLAGS) -c e2conv.c
+
+e2recs.o: e2recs.c
+	$(CC) $(CFLAGS) -c e2recs.c
+
+e2sort.o: e2sort.c
+	$(CC) $(CFLAGS) -c e2sort.c
+
+timestamp.o: timestamp.c matchlib.h circlib.h
+	$(CC) $(CFLAGS) -c timestamp.c
+
+tosecs: tosecs.c comlib.a
+	$(CC) $(CFLAGS) -o tosecs tosecs.c comlib.a $(LIBS)
+todate: todate.c comlib.a
+	$(CC) $(CFLAGS) -o todate todate.c comlib.a $(LIBS)
